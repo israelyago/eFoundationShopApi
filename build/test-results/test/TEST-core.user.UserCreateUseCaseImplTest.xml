@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="core.user.UserCreateUseCaseImplTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2021-02-16T08:20:41" hostname="DESKTOP-ME4TEVR" time="0.015">
+  <properties/>
+  <testcase name="should not create two user with the same token()" classname="core.user.UserCreateUseCaseImplTest" time="0.006"/>
+  <testcase name="should create user with different id and token each time()" classname="core.user.UserCreateUseCaseImplTest" time="0.005"/>
+  <testcase name="should create user successfully()" classname="core.user.UserCreateUseCaseImplTest" time="0.002"/>
+  <testcase name="should not create user when email is invalid()" classname="core.user.UserCreateUseCaseImplTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

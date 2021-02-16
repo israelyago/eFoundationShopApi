@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="core.smartphone.SmartphoneCreateUseCaseImplTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2021-02-16T08:20:41" hostname="DESKTOP-ME4TEVR" time="0.003">
+  <properties/>
+  <testcase name="should create when smartphone is valid()" classname="core.smartphone.SmartphoneCreateUseCaseImplTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
