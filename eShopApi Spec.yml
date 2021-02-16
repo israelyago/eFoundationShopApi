@@ -1,0 +1,751 @@
+openapi: 3.0.1
+info:
+  title: eSolutions shop
+  description: 'eSolutions shop currently has 3 key elements to it: `Users`, `Products`, and `Orders`. A User could be either an admin or a customer. An User could place Orders of the Products and see them later, while an admin could see all Orders, and add/remove new Products to the online store.'
+  contact:
+    email: israelyagopereira@gmail.com
+  version: 1.0.0
+externalDocs:
+  description: Find out more about eFoundation
+  url: https://e.foundation/
+servers:
+- url: http://127.0.0.1:8080/
+tags:
+- name: User
+  description: Operations about user
+- name: Product
+  description: eFoundation shop
+- name: Order
+  description: Orders placed by the users
+security:
+  - TokenAuth:
+    - read
+    - write
+    - delete
+paths:
+  /user:
+    get:
+      tags:
+      - User
+      summary: Get the information about the user from the token
+      responses:
+        "200":
+          description: All information about user got from "Authentication" token header. Note - If the user is a guest, the field "user" is null
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  cart:
+                    $ref: '#/components/schemas/Cart'
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "404":
+          description: User from the token was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response404'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+    post:
+      tags:
+      - User
+      summary: Creates a new user on the system
+      requestBody:
+        description: User data to be created. Field "id" from user will be ignored. This user will be associated with the token from the header Authorization.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        "201":
+          description: Resource created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    $ref: '#/components/schemas/Token'
+                  user:
+                    $ref: '#/components/schemas/User'
+                  cart:
+                    $ref: '#/components/schemas/Cart'
+        
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response400'
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "403":
+          description: Cannot create multiple user with the same token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  err_code:
+                    type: string
+                    example: 'TOKEN_WAS_ALREADY_USED'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+    put:
+      tags:
+      - User
+      summary: Updates the user
+      requestBody:
+        description: User object. If you wish to update the cart, take a look on PUT:/user/cart
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        "204":
+          description: Resource updated successfully
+
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response400'
+
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+  
+  /user/login:
+    post:
+      tags:
+      - User
+      summary: Login the user generating a new token
+      requestBody:
+        description: Credentials object
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  format: password
+                  example: fakepass
+        required: true
+      responses:
+        "200":
+          description: User connected successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    $ref: '#/components/schemas/Token'
+                  user:
+                    $ref: '#/components/schemas/User'
+                  cart:
+                    $ref: '#/components/schemas/Cart'
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  
+
+        "400":
+          description: Invalid request body or credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response400'
+
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+    
+  
+  /user/token:
+    get:
+      tags:
+      - User
+      summary: Generates a new token
+      security: []
+      description: Token used for all transactions. Used by connected users, admins and guests.
+      responses:
+        "200":
+          description: Token generated without errors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    $ref: '#/components/schemas/Token'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+   
+  /user/cart:
+    put:
+      tags:
+      - User
+      summary: Updates the cart of the user
+      requestBody:
+        description: Cart object.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cart'
+        required: true
+      responses:
+        "204":
+          description: Resource updated successfully
+
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response400'
+
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+    
+  
+  /product:
+    get:
+      tags:
+      - Product
+      summary: All products currently being sold
+      responses:
+        "200":
+          description: Product listing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  smartphones:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Smartphone'
+                  # could be more type of products on our store
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+  
+  /product/smartphone:
+    post:
+      tags:
+      - Product
+      summary: Creates a new smartphone
+      requestBody:
+        description: Smartphone object that needs to be added to the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Smartphone'
+        required: true
+      responses:
+        "201":
+          description: Resource created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  smartphone:
+                    $ref: '#/components/schemas/Smartphone'
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "403":
+          description: You don't have the privilegies to do so (admin required).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response403'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+    put:
+      tags:
+      - Product
+      summary: Updates a smartphone
+      requestBody:
+        description: Smartphone object new data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Smartphone'
+        required: true
+      responses:
+        "201":
+          description: Resource updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  smartphone:
+                    $ref: '#/components/schemas/Smartphone'
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "403":
+          description: You don't have the privilegies to do so (admin required).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response403'
+        
+        "404":
+          description: The smartphone was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response404'
+        
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+  /product/{id}:
+    delete:
+      tags:
+      - Product
+      summary: Deletes a product
+      parameters:
+      - name: id
+        in: path
+        description: ID of the product to be deleted
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: Resource deleted successfully
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "403":
+          description: You don't have the privilegies to do so (admin required).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response403'
+        
+        "404":
+          description: The product was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response404'
+        
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+  
+  /order/:
+    get:
+      tags:
+      - Order
+      summary: All orders of the user (if customer) or all orders of all users (if admin)
+      responses:
+        "200":
+          description: Orders listing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "404":
+          description: No user associated with this token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response404'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+    post:
+      tags:
+      - Order
+      summary: Creates a new order
+      requestBody:
+        description: "Order object and all transaction details. No need for cart information, because with the token we can retrieve the cart information. Note: after an order was placed, for optimal UX and legal reasons it probably should return all data necessary about the purchase (receipt)"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                credit_card:
+                  $ref: '#/components/schemas/CreditCard'
+                billing_details:
+                  $ref: '#/components/schemas/BillingDetails'
+        required: true
+      responses:
+        "204":
+          description: Order placed successfully
+          
+        "400":
+          description: Either the body is invalid or there is nothing on the cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response400'
+                  
+        "401":
+          description: A valid token is necessary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response401'
+        "500":
+          description: An error ocurred on the server side. Nothing the client could do.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response500'
+
+components:
+  schemas:
+    Image:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          example: https://esolutions.shop/wp-content/uploads/2020/05/fairphone-3.png
+    Smartphone:
+      type: object
+      required:
+        - id
+        - product_id
+        - name
+        - price_eur
+        - description
+        - images
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 284
+        product_id:
+          type: integer
+          format: int64
+          example: 65471
+        name:
+          type: string
+          example: /e/OS Fairphone 3
+        price_eur:
+          type: number
+          example: 429.90
+        description:
+          type: string
+          example: "The deGoogled Fairphone 3 is most likely the first privacy conscious and sustainable phone. It combines a phone that cares for people and planet and an OS and apps that care for your privacy."
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+    
+    CreditCard:
+      type: object
+      required:
+          - card_number
+          - expiry_date
+          - cvc
+      properties:
+        card_number:
+          type: string
+          example: "1111222233334444"
+        expiry_date:
+          type: string
+          example: 11/28
+        cvc:
+          type: string
+          example: "123"
+    
+    BillingDetails:
+      type: object
+      required:
+          - first_name
+          - last_name
+          - street_address
+          - post_code
+          - city
+          - email
+          - phone
+      properties:
+        id:
+          type: integer
+          format: int64
+        first_name:
+          type: string
+          example: John
+        last_name:
+          type: string
+          example: Doe
+        street_address:
+          type: string
+          example: Baker Street
+        post_code:
+          type: string
+          example: NW1 6XE
+        city:
+          type: string
+          example: London
+        email:
+          type: string
+          example: johndoe@fake.email.com
+          format: email
+        phone:
+          type: string
+          example: "1122344445555"
+    
+    User:
+      type: object
+      required:
+          - id
+          - username
+          - first_name
+          - last_name
+          - email
+          - password
+          - phone
+          - is_admin
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 84716
+        username:
+          type: string
+          example: johndoe
+        first_name:
+          type: string
+          example: John
+        last_name:
+          type: string
+          example: Doe
+        email:
+          type: string
+          example: johndoe@fake.email.com
+        password:
+          type: string
+          format: password
+          example: fakepass
+        phone:
+          type: string
+          example: "1122344445555"
+        is_admin:
+          type: boolean
+          example: false
+    
+    Cart:
+      type: array
+      items:
+        $ref: '#/components/schemas/CartItem'
+    
+    CartItem:
+      type: object
+      required:
+          - product_id
+          - quantity
+      properties:
+        product_id:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          format: int32
+          
+    Order:
+      type: object
+      required:
+        - id
+        - user_token
+        - cart
+      properties:
+        id:
+          type: integer
+          format: int64
+        user_token:
+          type: string
+        cart:
+           $ref: '#/components/schemas/Cart'
+        status:
+          type: string
+          description: Order Status
+          enum:
+          - placed
+          - approved
+          - delivered
+        complete:
+          type: boolean
+          default: false
+      xml:
+        name: Order
+    
+    Token:
+      type: string
+      example: 96b16175-d5e9-4c97-82f9-7021b4d090b7
+    
+    Response400:
+      type: object
+      required:
+          - err_code
+      properties:
+        err_code:
+          type: string
+          example: "INVALID_BODY"
+    
+    Response401:
+      type: object
+      required:
+          - err_code
+      properties:
+        err_code:
+          type: string
+          example: "VALID_TOKEN_REQUIRED"
+    
+    Response403:
+      type: object
+      required:
+          - err_code
+      properties:
+        err_code:
+          type: string
+          example: "ACCESS_REQUIRED"
+    
+    Response404:
+      type: object
+      required:
+          - err_code
+      properties:
+        err_code:
+          type: string
+          example: "ELEMENT_NOT_FOUND"
+    
+    Response500:
+      type: object
+      required:
+          - err_code
+      properties:
+        err_code:
+          type: string
+          example: "INTERNAL_SERVER_ERROR"
+    
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      name: Authorization
+      in: header

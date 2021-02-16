@@ -12,7 +12,7 @@ class OrderCreateUseCaseImpl(
         // Here would be all the validation of the token, credit card, billing details, etc
 
         val cart = cartRepository.getCartByToken(request.token)?:
-            return OrderCreateUseCaseResponse.Error(OrderCreateError.CART_DOES_EXIST)
+            return OrderCreateUseCaseResponse.Error(OrderCreateError.CART_DOES_NOT_EXIST)
 
         orderRepository.create(
             order = Order(

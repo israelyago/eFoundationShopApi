@@ -168,12 +168,15 @@ private fun Route.createSmartphone(shopSdk: ShopSdk) {
                             "smartphone" to result.smartphone
                         ))
                     }
-                    /*is SmartphoneCreateResponse.Error -> {
+                    /*
+                    // There is no error implementation (should have), i.e: all smartphone data will be accepted
+                    is SmartphoneCreateResponse.Error -> {
                         call.response.status(HttpStatusCode.BadRequest)
                         call.respond(mapOf(
                             "err_code" to result.error
                         ))
-                    }*/
+                    }
+                    */
                     else -> {
                         call.respond(mapOf(
                             "err_code" to "INTERNAL_SERVER_ERROR"
